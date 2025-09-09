@@ -1,0 +1,92 @@
+/* Estrutura geral */
+.app {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f6f8;
+  color: #2c3e50;
+}
+
+/* Sidebar */
+.sidebar {
+  background: #1f2937;
+  color: #ecf0f1;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.brand {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  text-align: center;
+  letter-spacing: 1px;
+  color: #ffffff;
+}
+
+/* Links da sidebar */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.link {
+  padding: 0.7rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #d1d5db;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+
+.link:hover {
+  background: #374151;
+  color: #fff;
+}
+
+.link.active {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* Área principal */
+.content {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.header {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.page {
+  padding: 2rem;
+  background: #f9fafb;
+}
+
+.footer {
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6b7280;
+  background: #ffffff;
+}
+
+/* Card padrão */
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  max-width: 700px;
+}
