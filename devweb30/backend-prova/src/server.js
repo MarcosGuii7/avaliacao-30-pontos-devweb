@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import professoresRoutes from "./routes/professores.routes.js";
 import alunosRoutes from "./routes/alunos.routes.js";
+import disciplinasRoutes from "./routes/disciplinas.routes.js";
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
 
 app.use("/api", professoresRoutes);
 app.use("/api", alunosRoutes);
+app.use("/api/disciplinas", disciplinasRoutes);
 
 const PORT = Number(process.env.PORT || 4000);
 app.listen(PORT, () => {
