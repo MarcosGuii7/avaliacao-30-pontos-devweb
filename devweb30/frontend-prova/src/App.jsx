@@ -3,6 +3,7 @@ import Layout from "./components/Layout/Layout.jsx";
 import Home from "./pages/Home.jsx";
 import Alunos from "./pages/Alunos.jsx";
 import Professores from "./pages/Professores.jsx";
+import Disciplinas from "./pages/Disciplinas.jsx";
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
         <Route index element={<Home />} />
         <Route path="alunos" element={<Alunos />} />
         <Route path="professores" element={<Professores />} />
+        <Route path="disciplinas" element={<Disciplinas />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
