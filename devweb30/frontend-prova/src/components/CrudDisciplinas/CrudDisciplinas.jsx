@@ -133,7 +133,7 @@ export default function CrudDisciplinas() {
             </tr>
           ) : (
             lista.map((d) => (
-              <tr key={p.id}>
+              <tr key={d.id}>
                 <td className="td">{d.nome}</td>
                 <td className="td">
                   <div className="row-actions">

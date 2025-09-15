@@ -17,25 +17,29 @@ export default function CrudProfessores() {
     carga_horaria_semanal: "",
   });
 
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+
   const emEdicao = form.id !== null;
 
-  // Helpers
-  async function carregarProfessores() {
-    const res = await fetch(API_PROF);
+  async function carregarProfessores(p = page) {
+    const res = await fetch(`${API_PROF}?page=${p}&limit=5`)
     const dados = await res.json();
-    setLista(dados || []);
+    setLista(dados.data || []);
+    setPage(dados.meta.page)
+    setTotalPages(dados.meta.totalPages)
   }
+
   async function carregarDisciplinas() {
     const res = await fetch(API_DISC);
     const dados = await res.json();
     setDisciplinas(dados || []);
   }
 
-  // Carregamento inicial
   useEffect(() => {
-    carregarProfessores();
+    carregarProfessores(page);
     carregarDisciplinas();
-  }, []); // ← evita loop
+  }, [page]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -65,7 +69,7 @@ export default function CrudProfessores() {
       body: JSON.stringify({
         nome: form.nome,
         email: form.email,
-        disciplina_id: Number(form.disciplina_id), // ← envia o ID
+        disciplina_id: Number(form.disciplina_id),
         titulacao: form.titulacao,
         telefone: form.telefone,
         carga_horaria_semanal: form.carga_horaria_semanal,
@@ -103,7 +107,6 @@ export default function CrudProfessores() {
   }
 
   function iniciarEdicao(p) {
-    // Quando editar, manter o disciplina_id; se vier nulo, usar "" para o select
     setForm({
       id: p.id,
       nome: p.nome || "",
@@ -126,7 +129,6 @@ export default function CrudProfessores() {
       <h2 className="crud__title">Gestão de Professores</h2>
       <p className="crud__subtitle">CRUD simples de Professores consumindo API.</p>
 
-      {/* FORMULÁRIO */}
       <form onSubmit={onSubmit} className="crud__form">
         <div className="form-row">
           <div className="form-field">
@@ -221,7 +223,6 @@ export default function CrudProfessores() {
         </div>
       </form>
 
-      {/* LISTA */}
       <table className="table">
         <thead>
           <tr>
@@ -244,7 +245,7 @@ export default function CrudProfessores() {
               <tr key={p.id}>
                 <td className="td">{p.nome}</td>
                 <td className="td">{p.email}</td>
-                <td className="td">{p.disciplina}</td> {/* nome retornado pelo JOIN */}
+                <td className="td">{p.disciplina}</td>
                 <td className="td">{p.titulacao}</td>
                 <td className="td">{p.telefone}</td>
                 <td className="td">{p.carga_horaria_semanal}</td>
@@ -259,6 +260,23 @@ export default function CrudProfessores() {
           )}
         </tbody>
       </table>
+      <div className="pager">
+        <button
+          className="btn btn-small"
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={page === 1}
+        >
+          Anterior
+        </button>
+        <span>Página {page} de {totalPages}</span>
+        <button
+          className="btn btn-small"
+          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          disabled={page === totalPages}
+        >
+          Próxima
+        </button>
+      </div>
     </div>
   );
 }
