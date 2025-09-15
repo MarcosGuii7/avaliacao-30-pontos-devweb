@@ -1,8 +1,67 @@
 import { pool } from "../db.js";
 
+// Whitelist de colunas permitidas para ordenação
+const SORT_MAP = {
+  id: "p.id",
+  nome: "p.nome",
+  email: "p.email",
+  disciplina: "d.nome",
+  titulacao: "p.titulacao",
+  carga_horaria_semanal: "p.carga_horaria_semanal",
+};
+
 // GET /professores
+// Query params: page, limit, sortBy, sortDir, q, disciplina_id
 export async function listarProfessores(req, res) {
   try {
+    // 1) Paginação
+    const page = Math.max(parseInt(req.query.page ?? "1", 10) || 1, 1);
+    const limitRaw = parseInt(req.query.limit ?? "10", 10) || 10;
+    const limit = Math.min(Math.max(limitRaw, 1), 100);
+    const offset = (page - 1) * limit;
+
+    // 2) Ordenação (com whitelist)
+    const sortByParam = (req.query.sortBy || "id").toString().toLowerCase();
+    const sortBy = SORT_MAP[sortByParam] ?? SORT_MAP.id;
+    const sortDirParam = (req.query.sortDir || "desc").toString().toLowerCase();
+    const sortDir = sortDirParam === "asc" ? "ASC" : "DESC";
+
+    // 3) Filtros / pesquisa
+    const q = (req.query.q || "").toString().trim();
+    const disciplinaId = req.query.disciplina_id ? Number(req.query.disciplina_id) : null;
+
+    const whereClauses = [];
+    const params = [];
+
+    // Filtro por disciplina_id (opcional)
+    if (disciplinaId) {
+      whereClauses.push("p.disciplina_id = ?");
+      params.push(disciplinaId);
+    }
+
+    // Pesquisa simples em múltiplos campos
+    if (q) {
+      const like = `%${q}%`;
+      whereClauses.push(
+        "(p.nome LIKE ? OR p.email LIKE ? OR p.titulacao LIKE ? OR p.telefone LIKE ? OR d.nome LIKE ?)"
+      );
+      params.push(like, like, like, like, like);
+    }
+
+    const whereSQL = whereClauses.length ? "WHERE " + whereClauses.join(" AND ") : "";
+
+    // 4) Total (para meta de paginação)
+    const [countRows] = await pool.query(
+      `SELECT COUNT(*) AS total
+       FROM professores p
+       LEFT JOIN disciplinas d ON d.id = p.disciplina_id
+       ${whereSQL}`,
+      params
+    );
+    const total = countRows[0]?.total ?? 0;
+    const totalPages = Math.max(Math.ceil(total / limit), 1);
+
+    // 5) Dados paginados
     const [rows] = await pool.query(
       `SELECT 
          p.id, p.nome, p.email, p.titulacao, p.telefone, p.carga_horaria_semanal,
@@ -10,9 +69,25 @@ export async function listarProfessores(req, res) {
          d.nome AS disciplina
        FROM professores p
        LEFT JOIN disciplinas d ON d.id = p.disciplina_id
-       ORDER BY p.id DESC`
+       ${whereSQL}
+       ORDER BY ${sortBy} ${sortDir}
+       LIMIT ? OFFSET ?`,
+      [...params, limit, offset]
     );
-    res.json(rows);
+
+    res.json({
+      data: rows,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages,
+        sortBy: Object.keys(SORT_MAP).find((k) => SORT_MAP[k] === sortBy) || "id",
+        sortDir: sortDir.toLowerCase(),
+        q: q || undefined,
+        disciplina_id: disciplinaId || undefined,
+      },
+    });
   } catch (e) {
     res.status(500).json({ erro: "Falha ao listar professores" });
   }
@@ -104,7 +179,7 @@ export async function atualizarProfessor(req, res) {
       carga_horaria_semanal,
     } = req.body;
 
-    if (disciplina_id !== undefined) {
+    if (disciplina_id !== undefined && disciplina_id !== null) {
       const [disc] = await pool.query(
         "SELECT id FROM disciplinas WHERE id = ?",
         [disciplina_id]
